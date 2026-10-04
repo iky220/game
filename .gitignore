@@ -1,0 +1,15 @@
+# Dependensi
+node_modules/
+
+# Hasil keluaran pengujian / sementara
+*.out.txt
+e2e_out.txt
+esc_out.txt
+logic_out.txt
+
+# Berkas sistem & editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
