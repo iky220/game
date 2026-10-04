@@ -99,4 +99,45 @@ ok('Sep: balance -250.000', sep.balance === -250000);
 const empty = api.computeMonthTotals(sample, '2020-01');
 ok('Bulan kosong: total 0', empty.total === 0 && empty.balance === 0);
 
+console.log('\n== 7. Auth: hash password (SHA-256 + salt) ==');
+// Ekstrak helper hash memakai penanda khusus agar tetap sinkron dengan index.html.
+const hashSrc = slice('// auth:hash:begin', '// auth:hash:end');
+const authApi = new Function(hashSrc + '\nreturn AuthHash;')();
+
+// Vektor uji resmi SHA-256 (FIPS 180-4).
+ok('sha256("") sesuai vektor uji',
+  authApi.sha256('') === 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+ok('sha256("abc") sesuai vektor uji',
+  authApi.sha256('abc') === 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+ok('sha256(64 char) sesuai vektor uji',
+  authApi.sha256('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq') ===
+  '248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1');
+ok('sha256 selalu hex 64 karakter', /^[0-9a-f]{64}$/.test(authApi.sha256('rahasia banget')));
+ok('sha256 berbeda untuk input berbeda', authApi.sha256('a') !== authApi.sha256('b'));
+
+ok('utf8Bytes ASCII = kode karakter', JSON.stringify(authApi.utf8Bytes('A')) === '[65]');
+ok('utf8Bytes multi-byte (Jepang) = 3 byte', authApi.utf8Bytes('日').length === 3);
+ok('utf8Bytes emoji (surrogate pair) = 4 byte', authApi.utf8Bytes('😀').length === 4);
+
+const salt1 = authApi.makeSalt();
+const salt2 = authApi.makeSalt();
+ok('makeSalt 32 hex (16 byte)', /^[0-9a-f]{32}$/.test(salt1));
+ok('makeSalt unik antar pemanggilan', salt1 !== salt2);
+ok('makeSalt menghormati panjang byte', authApi.makeSalt(8).length === 16);
+
+const iterations = 128; // iterasi kecil agar unit test tetap cepat
+const h1 = authApi.hashPassword('P@ssw0rd', salt1, iterations);
+ok('format hash = sha256$iterasi$salt$hash', /^sha256\$\d+\$[0-9a-f]+\$[0-9a-f]{64}$/.test(h1));
+ok('hash deterministik untuk salt & password sama',
+  authApi.hashPassword('P@ssw0rd', salt1, iterations) === h1);
+ok('hash berbeda bila salt berbeda',
+  authApi.hashPassword('P@ssw0rd', salt2, iterations) !== h1);
+ok('hash berbeda bila password berbeda',
+  authApi.hashPassword('lain', salt1, iterations) !== h1);
+ok('verifyPassword menerima password benar', authApi.verifyPassword('P@ssw0rd', h1) === true);
+ok('verifyPassword menolak password salah', authApi.verifyPassword('salah', h1) === false);
+ok('verifyPassword menolak hash null', authApi.verifyPassword('x', null) === false);
+ok('verifyPassword menolak format rusak', authApi.verifyPassword('x', 'sha256$rusak') === false);
+ok('verifyPassword menolak salt terlalu pendek', authApi.verifyPassword('x', 'sha256$10$ab$' + 'a'.repeat(64)) === false);
+
 console.log('\n' + pass + ' PASSED, exitCode=' + (process.exitCode || 0));

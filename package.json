@@ -4,8 +4,9 @@
   "private": true,
   "description": "SPA rekap keuangan satu file (index.html) + suite pengujian jsdom.",
   "scripts": {
-    "test": "node tests/logic.test.js && node tests/e2e.test.js && node tests/esc.test.js",
+    "test": "node tests/logic.test.js && node tests/auth.test.js && node tests/e2e.test.js && node tests/esc.test.js",
     "test:logic": "node tests/logic.test.js",
+    "test:auth": "node tests/auth.test.js",
     "test:e2e": "node tests/e2e.test.js",
     "test:esc": "node tests/esc.test.js"
   },
