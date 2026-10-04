@@ -1,0 +1,151 @@
+﻿
+== 0. Integritas referensi elemen (el.*) ==
+  PASS  tidak ada referensi el.<key> yang tidak terdefinisi
+  PASS  semua id yang dipakai el terdaftar di HTML
+
+== 1. Inisialisasi awal ==
+  PASS  dashboard saldo awal "Rp 0"
+  PASS  catatan saldo awal benar
+  PASS  riwayat kosong menampilkan empty state
+  PASS  kolom tanggal terisi hari ini
+  PASS  dropdown bulan default "all"
+  PASS  bindGlobal tuntas (lightboxClose terpasang tanpa error)
+
+== 2. Validasi form kosong ==
+  PASS  error nominal tampil
+  PASS  error keterangan tampil
+  PASS  tidak ada data tersimpan
+  PASS  belum ada baris riwayat
+
+== 3. Simpan pemasukan tanpa foto ==
+  PASS  1 transaksi tersimpan
+  PASS  jenis = pemasukan
+  PASS  nominal = 5000000 (number)
+  PASS  foto null (tidak upload)
+  PASS  saldo = Rp 5.000.000
+  PASS  pendapatan = Rp 5.000.000
+  PASS  1 baris riwayat
+  PASS  keterangan tampil di riwayat
+  PASS  form direset setelah simpan
+
+== 4. Simpan pengeluaran tanpa foto ==
+  PASS  2 transaksi tersimpan
+  PASS  pengeluaran = Rp 1.500.000
+  PASS  saldo = Rp 3.500.000
+  PASS  2 baris riwayat
+
+== 5. Upload foto -> FileReader -> Base64 + kompresi canvas ==
+  PASS  preview foto tampil
+  PASS  status "Terkonversi Base64"
+  PASS  nama file tampil
+  PASS  preview img = data URL base64
+  PASS  dropZone disembunyikan
+  PASS  3 transaksi tersimpan
+  PASS  1 transaksi punya Base64 foto
+  PASS  foto = data URL base64
+  PASS  fotoName tersimpan
+  PASS  thumbnail foto muncul di riwayat
+
+== 6. Persistensi localStorage ==
+  PASS  key finrecap.transactions.v1 ada
+  PASS  format JSON { version, transactions }
+  PASS  jumlah tersimpan = 3
+
+== 7. Lightbox / modal foto ==
+  PASS  lightbox terbuka
+  PASS  gambar full (base64)
+  PASS  caption memuat keterangan & nominal
+  PASS  lightbox tertutup
+
+== 8. Filter jenis & pencarian ==
+  PASS  filter "Masuk" -> 1 baris
+  PASS  ringkasan "1 dari 3"
+  PASS  filter "Semua" -> 3 baris
+  PASS  pencarian "sewa" -> 1 baris
+  PASS  baris cocok = "Sewa kantor"
+  PASS  pencarian tanpa hasil -> empty state
+  PASS  tombol reset filter -> 3 baris
+  PASS  kotak pencarian dikosongkan
+
+== 9. Filter bulan ==
+  PASS  opsi memuat "Oktober 2026"
+  PASS  bulan tanpa data -> empty state
+  PASS  semua bulan -> 3 baris
+
+== 10. Pengurutan (sortSelect -> state.filters.sort -> getVisibleTransactions) ==
+  PASS  keempat nilai opsi pengurutan tersedia di <select>
+  PASS  logika mengenali cabang "amount" dan arah "-asc"
+  PASS  jumlah baris amount-desc = 3
+  PASS  DOM amount-desc = urutan nominal desc pada baris yang dirender
+  PASS  jumlah baris amount-asc = 3
+  PASS  DOM amount-asc = urutan nominal asc pada baris yang dirender
+  PASS  urutan amount-desc adalah kebalikan amount-asc
+  PASS  kembali ke date-desc (3 baris)
+
+== 11. Toggle kartu <-> tabel ==
+  PASS  mode tabel merender <table>
+  PASS  header tabel memuat "Nominal"
+  PASS  kembali ke kartu (<ul> atau <div>)
+
+== 12. Edit transaksi ==
+  PASS  mode edit tidak mengganti <form>.onsubmit (bukan submit langsung)
+  PASS  judul form = "Edit Transaksi"
+  PASS  nominal terisi 5000000
+  PASS  keterangan terisi
+  PASS  tanggal terisi
+  PASS  radio jenis = pemasukan
+  PASS  txId tersembunyi terisi
+  PASS  petunjuk mode edit muncul
+  PASS  tombol batal edit tampil
+  PASS  label tombol jadi "Simpan Perubahan"
+  PASS  mode edit TIDAK mereset form (onsubmit bawaan tetap utuh)
+  PASS  tetap 3 transaksi (update, bukan tambah)
+  PASS  tidak ada transaksi baru tercipta (id set tetap sama)
+  PASS  nominal diperbarui = 5500000
+  PASS  keterangan diperbarui
+  PASS  updatedAt >= createdAt
+  PASS  id tidak berubah saat edit
+  PASS  jenis tetap pemasukan
+  PASS  form kembali ke mode tambah
+  PASS  edit tersimpan di localStorage (bertahan setelah reload simulasi)
+  PASS  saldo = Rp 3.750.000 (5,5jt - 1,5jt - 250rb)
+  PASS  dashboard pengeluaran = Rp 1.750.000
+  PASS  dashboard pendapatan = Rp 5.500.000
+
+== 13. Hapus transaksi + dialog konfirmasi ==
+  PASS  dialog konfirmasi terbuka
+  PASS  dialog sebut keterangan & nominal
+  PASS  dialog tertutup
+  PASS  sisa 2 transaksi
+  PASS  transaksi hilang dari riwayat
+  PASS  thumbnail foto jadi 0
+
+== 14. Batal di dialog = data tetap ==
+  PASS  data tidak terhapus setelah batal
+
+== 15. Escape & keyboard (verifikasi statis + runtime) ==
+  PASS  dialog terbuka lagi
+  PASS  ESC menangani lightbox lebih dulu
+  PASS  ESC menangani dialog sebelum menu
+  PASS  setiap cabang ESC memakai return (berhenti setelah menutup)
+  PASS  lightbox memakai tombol panah kiri/kanan
+  PASS  ada pintasan Ctrl/Cmd+Enter untuk menyimpan
+  PASS  ESC menutup dialog (target = body ATAU tombol dalam dialog)
+  PASS  data tetap 2 (ESC tidak pernah menghapus)
+  PASS  error konsol tidak muncul saat ESC ditangani
+
+== 16. Hapus semua data (menu) ==
+  PASS  menu terbuka
+  PASS  semua data terhapus
+  PASS  localStorage key dihapus
+  PASS  dashboard kembali "Rp 0"
+  PASS  empty state tampil lagi
+
+== 17. Ketahanan data korup / tidak valid ==
+  PASS  menulis JSON korup tidak membuat app crash (UI masih merespons)
+  PASS  tidak ada exception tak tertangani saat data korup
+  PASS  data tidak valid tetap tersimpan JSON (tidak crash saat parse)
+
+================================
+111 PASSED, 0 FAILED
+================================
